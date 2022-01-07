@@ -39,18 +39,18 @@ exports.getUserWithEmail = getUserWithEmail;
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserWithId = function (id) {
-const queryString = `SELECT * FROM users WHERE id = $1`;
-const values = [id];
-return pool.query(queryString, values)
-.then((result) => {
-  user = result.rows[0];
-  if(user.id === id) {
-    return Promise.resolve(user);
-  }else {
-    user = null;
-    return Promise.reject(user);
-  }
-});
+  const queryString = `SELECT * FROM users WHERE id = $1`;
+  const values = [id];
+  return pool.query(queryString, values)
+    .then((result) => {
+      user = result.rows[0];
+      if (user.id === id) {
+        return Promise.resolve(user);
+      } else {
+        user = null;
+        return Promise.reject(user);
+      }
+    });
 };
 exports.getUserWithId = getUserWithId;
 
@@ -61,22 +61,16 @@ exports.getUserWithId = getUserWithId;
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser = function (user) {
-const queryString = `INSERT INTO users (name, email, password)
+  const queryString = `INSERT INTO users (name, email, password)
 VALUES ($1, $2, $3)
 RETURNING *` ;
-const values = [user.name, user.email, user.password];
-return pool.query(queryString, values)
-.then((result) => {
-  return Promise.resolve((result.rows[0]));
-}).catch((err) => {
-  return Promise.reject(err.message);
-});
-
-
-  // const userId = Object.keys(users).length + 1;
-  // user.id = userId;
-  // users[userId] = user;
-  // return Promise.resolve(user);
+  const values = [user.name, user.email, user.password];
+  return pool.query(queryString, values)
+    .then((result) => {
+      return Promise.resolve((result.rows[0]));
+    }).catch((err) => {
+      return Promise.reject(err.message);
+    });
 }
 exports.addUser = addUser;
 
@@ -97,12 +91,12 @@ const getAllReservations = function (guest_id, limit = 10) {
  `;
   const values = [limit];
   return pool.query(queryString, values)
-.then((result) => {
-  return Promise.resolve(result.rows);
-})
-  .catch((err) => {
-    console.log(err.message);
-  });
+    .then((result) => {
+      return Promise.resolve(result.rows);
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
 };
 
 exports.getAllReservations = getAllReservations;
@@ -131,9 +125,9 @@ FROM properties p
   }
 
   if (options.owner_id) {
-    if(queryParams.length >= 1) {
-    queryParams.push(`${options.owner_id}`);
-    queryString += ` AND p.owner_id = $${queryParams.length} `;
+    if (queryParams.length >= 1) {
+      queryParams.push(`${options.owner_id}`);
+      queryString += ` AND p.owner_id = $${queryParams.length} `;
     } else {
       queryParams.push(`%${options.owner_id}%`);
       queryString += ` WHERE p.owner_id = $${queryParams.length} `;
@@ -141,7 +135,7 @@ FROM properties p
   }
 
   if (options.minimum_price_per_night) {
-    if(queryParams.length >= 1) {
+    if (queryParams.length >= 1) {
       queryParams.push(`${options.minimum_price_per_night}`);
       queryString += ` AND p.cost_per_night >= $${queryParams.length}`;
     } else {
@@ -165,7 +159,7 @@ FROM properties p
 
   if (options.minimum_rating) {
     queryParams.push(`${options.minimum_rating}`);
-    queryString += ` HAVING AVG(pr.rating) >= $${queryParams.length } `;
+    queryString += ` HAVING AVG(pr.rating) >= $${queryParams.length} `;
   }
 
   // 4
@@ -189,9 +183,17 @@ exports.getAllProperties = getAllProperties;
  * @return {Promise<{}>} A promise to the property.
  */
 const addProperty = function (property) {
-  const propertyId = Object.keys(properties).length + 1;
-  property.id = propertyId;
-  properties[propertyId] = property;
-  return Promise.resolve(property);
+
+  const queryString = `INSERT INTO properties (owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, parking_spaces, number_of_bathrooms, number_of_bedrooms, country, street, city, province, post_code, active)
+  VALUES ($1, $2 , $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, true )
+  RETURNING * ;`
+  const values = [property.owner_id, property.title, property.description, property.thumbnail_photo_url, property.cover_photo_url, property.cost_per_night, property.parking_spaces, property.number_of_bathrooms, property.number_of_bedrooms, property.country, property.street, property.city, property.province, property.post_code];
+
+  return pool.query(queryString, values)
+    .then((result) => {
+      return Promise.resolve((result.rows[0]));
+    }).catch((err) => {
+      return Promise.reject(err.message);
+    });
 }
 exports.addProperty = addProperty;
